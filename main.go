@@ -40,7 +40,15 @@ func calculate(c *gin.Context) {
 	}
 
 	// Call evaluator
-	result := evaluate(*evalTree)
+	result, error := evaluate(*evalTree)
+	if error != "" {
+		c.JSON(400, gin.H{
+			"error": error,
+		})
+		return
+	}
+
+	// Response if everything went fine
 	c.JSON(200, gin.H{
 		"result": result,
 	})
@@ -162,16 +170,20 @@ func parser(tokens []string) (*Tree, string) {
 }
 
 // TODO: Add error handling for invalid expressions
-func evaluate(evalTree Tree) int {
+func evaluate(evalTree Tree) (int, string) {
+	var error string = ""
+
 	if (evalTree.value == "+" || evalTree.value == "-" || evalTree.value == "*" || evalTree.value == "/") && evalTree.left != nil && evalTree.right != nil {
 		_, leftErr := strconv.Atoi(evalTree.left.value)
 		_, rightErr := strconv.Atoi(evalTree.right.value)
 		if leftErr != nil {
-			evalTree.left.value = strconv.Itoa(evaluate(*evalTree.left))
+			leftResult, _ := evaluate(*evalTree.left)
+			evalTree.left.value = strconv.Itoa(leftResult)
 			leftErr = nil
 		}
 		if rightErr != nil {
-			evalTree.right.value = strconv.Itoa(evaluate(*evalTree.right))
+			rightResult, _ := evaluate(*evalTree.right)
+			evalTree.right.value = strconv.Itoa(rightResult)
 			rightErr = nil
 		}
 		if leftErr == nil && rightErr == nil {
@@ -179,15 +191,19 @@ func evaluate(evalTree Tree) int {
 			rightVal, _ := strconv.Atoi(evalTree.right.value)
 			switch evalTree.value {
 			case "+":
-				return leftVal + rightVal
+				return leftVal + rightVal, error
 			case "-":
-				return leftVal - rightVal
+				return leftVal - rightVal, error
 			case "*":
-				return leftVal * rightVal
+				return leftVal * rightVal, error
 			case "/":
-				return leftVal / rightVal
+				if rightVal == 0 {
+					error = "Division by zero"
+					return -1, error
+				}
+				return leftVal / rightVal, error
 			}
 		}
 	}
-	return -1
+	return -1, error
 }
