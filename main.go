@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -50,15 +51,7 @@ func lexer(form string) ([]string, string) {
 
 	// check if all tokens are valid
 	for i := 0; i < len(tokens); i++ {
-		// TODO: replace if checks with switch-case?
-		if !((tokens[i] >= "0" && tokens[i] <= "9") ||
-			(tokens[i] == "+") ||
-			(tokens[i] == "-") ||
-			(tokens[i] == "*") ||
-			(tokens[i] == "/") ||
-			(tokens[i] == "(") ||
-			(tokens[i] == ")")) {
-
+		if !((tokens[i] >= "0" && tokens[i] <= "9") || slices.Contains([]string{"+", "-", "*", "/", "(", ")"}, tokens[i])) {
 			error = "Invalid token: " + tokens[i]
 			break
 		}
