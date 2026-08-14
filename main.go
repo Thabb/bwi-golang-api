@@ -65,11 +65,24 @@ func lexer(form string) ([]string, string) {
 	return tokens, error
 }
 
-// TODO: Add error handling for invalid expressions
 func parser(tokens []string) (*Tree, string) {
 	var evalTree Tree
 	var parensCount int = 0
 	var error string = ""
+
+	// Add a missing * operator between a number and a parenthesis
+	for i := 0; i < len(tokens); i++ {
+		if tokens[i] == "(" && i > 0 {
+			if tokens[i-1] >= "0" && tokens[i-1] <= "9" {
+				tokens = slices.Insert(tokens, i, "*")
+			}
+		}
+		if tokens[i] == ")" && i < len(tokens)-1 {
+			if tokens[i+1] >= "0" && tokens[i+1] <= "9" {
+				tokens = slices.Insert(tokens, i+1, "*")
+			}
+		}
+	}
 
 	// Process addition and subtraction
 	for i := 0; i < len(tokens); i++ {
@@ -111,7 +124,7 @@ func parser(tokens []string) (*Tree, string) {
 
 		if parensCount == 0 {
 			if tokens[i] == "*" || tokens[i] == "/" {
-				if !(tokens[i+1] >= "0" && tokens[i+1] <= "9") {
+				if tokens[i+1] == "+" || tokens[i+1] == "-" {
 					error = "Multiple operators in a row"
 					return nil, error
 				}
