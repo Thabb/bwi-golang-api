@@ -94,6 +94,12 @@ func parser(tokens []string) (*Tree, string) {
 		}
 	}
 
+	// Check for mismatched parentheses
+	if parensCount != 0 {
+		error = "Mismatched parentheses"
+		return nil, error
+	}
+
 	// Process multiplication and division
 	for i := 0; i < len(tokens); i++ {
 		if tokens[i] == "(" {
@@ -115,6 +121,12 @@ func parser(tokens []string) (*Tree, string) {
 				return &evalTree, error
 			}
 		}
+	}
+
+	// Check for mismatched parentheses
+	if parensCount != 0 {
+		error = "Mismatched parentheses"
+		return nil, error
 	}
 
 	// Check for parentheses
