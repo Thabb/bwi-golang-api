@@ -31,7 +31,13 @@ func calculate(c *gin.Context) {
 	}
 
 	// Call parser
-	evalTree := parser(tokens)
+	evalTree, error := parser(tokens)
+	if error != "" {
+		c.JSON(400, gin.H{
+			"error": error,
+		})
+		return
+	}
 
 	// Call evaluator
 	result := evaluate(*evalTree)
@@ -60,9 +66,10 @@ func lexer(form string) ([]string, string) {
 }
 
 // TODO: Add error handling for invalid expressions
-func parser(tokens []string) *Tree {
+func parser(tokens []string) (*Tree, string) {
 	var evalTree Tree
 	var parensCount int = 0
+	var error string = ""
 
 	// Process addition and subtraction
 	for i := 0; i < len(tokens); i++ {
@@ -75,10 +82,14 @@ func parser(tokens []string) *Tree {
 
 		if parensCount == 0 {
 			if tokens[i] == "+" || tokens[i] == "-" {
+				if !(tokens[i+1] >= "0" && tokens[i+1] <= "9") {
+					error = "Multiple operators in a row"
+					return nil, error
+				}
 				evalTree.value = tokens[i]
-				evalTree.left = parser(tokens[0:i])
-				evalTree.right = parser(tokens[i+1:])
-				return &evalTree
+				evalTree.left, error = parser(tokens[0:i])
+				evalTree.right, error = parser(tokens[i+1:])
+				return &evalTree, error
 			}
 		}
 	}
@@ -94,11 +105,14 @@ func parser(tokens []string) *Tree {
 
 		if parensCount == 0 {
 			if tokens[i] == "*" || tokens[i] == "/" {
-
+				if !(tokens[i+1] >= "0" && tokens[i+1] <= "9") {
+					error = "Multiple operators in a row"
+					return nil, error
+				}
 				evalTree.value = tokens[i]
-				evalTree.left = parser(tokens[0:i])
-				evalTree.right = parser(tokens[i+1:])
-				return &evalTree
+				evalTree.left, error = parser(tokens[0:i])
+				evalTree.right, error = parser(tokens[i+1:])
+				return &evalTree, error
 			}
 		}
 	}
@@ -112,10 +126,10 @@ func parser(tokens []string) *Tree {
 	if (tokens[0] >= "0" && tokens[0] <= "9") && (tokens[len(tokens)-1] >= "0" && tokens[len(tokens)-1] <= "9") {
 		// If the expression is a single number, return it as a leaf node
 		evalTree.value = strings.Join(tokens, "")
-		return &evalTree
+		return &evalTree, error
 	}
 
-	return nil
+	return nil, error
 }
 
 // TODO: Add error handling for invalid expressions
