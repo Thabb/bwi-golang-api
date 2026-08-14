@@ -131,6 +131,10 @@ func parser(tokens []string) (*Tree, string) {
 
 	// Check for parentheses
 	if tokens[0] == "(" && tokens[len(tokens)-1] == ")" {
+		if len(tokens) < 3 {
+			error = "Empty parentheses"
+			return nil, error
+		}
 		// Remove the outer parentheses and parse the inner expression
 		return parser(tokens[1 : len(tokens)-1])
 	}
