@@ -1,0 +1,157 @@
+package main
+
+import (
+	"strconv"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+)
+
+type Tree struct {
+	value string
+	left  *Tree
+	right *Tree
+}
+
+func main() {
+	router := gin.Default()
+	router.POST("/calculate", calculate)
+	router.Run("localhost:8080")
+}
+
+func calculate(c *gin.Context) {
+	// Call lexer
+	tokens, error := lexer(c.Query("form"))
+	if error != "" {
+		c.JSON(400, gin.H{
+			"error": error,
+		})
+		return
+	}
+
+	// Call parser
+	evalTree := parser(tokens)
+
+	// Call evaluator
+	result := evaluate(*evalTree)
+	c.JSON(200, gin.H{
+		"result": result,
+	})
+}
+
+func lexer(form string) ([]string, string) {
+	var tokens []string
+	var error string = ""
+
+	// remove all white space
+	form = strings.Replace(form, " ", "", -1)
+	// split form into tokens
+	tokens = strings.Split(form, "")
+
+	// check if all tokens are valid
+	for i := 0; i < len(tokens); i++ {
+		// TODO: replace if checks with switch-case?
+		if !((tokens[i] >= "0" && tokens[i] <= "9") ||
+			(tokens[i] == "+") ||
+			(tokens[i] == "-") ||
+			(tokens[i] == "*") ||
+			(tokens[i] == "/") ||
+			(tokens[i] == "(") ||
+			(tokens[i] == ")")) {
+
+			error = "Invalid token: " + tokens[i]
+			break
+		}
+	}
+	return tokens, error
+}
+
+// TODO: Add error handling for invalid expressions
+func parser(tokens []string) *Tree {
+	var evalTree Tree
+	var parensCount int = 0
+
+	// Process addition and subtraction
+	for i := 0; i < len(tokens); i++ {
+		if tokens[i] == "(" {
+			parensCount++
+		}
+		if tokens[i] == ")" {
+			parensCount--
+		}
+
+		if parensCount == 0 {
+			if tokens[i] == "+" || tokens[i] == "-" {
+				evalTree.value = tokens[i]
+				evalTree.left = parser(tokens[0:i])
+				evalTree.right = parser(tokens[i+1:])
+				return &evalTree
+			}
+		}
+	}
+
+	// Process multiplication and division
+	for i := 0; i < len(tokens); i++ {
+		if tokens[i] == "(" {
+			parensCount++
+		}
+		if tokens[i] == ")" {
+			parensCount--
+		}
+
+		if parensCount == 0 {
+			if tokens[i] == "*" || tokens[i] == "/" {
+
+				evalTree.value = tokens[i]
+				evalTree.left = parser(tokens[0:i])
+				evalTree.right = parser(tokens[i+1:])
+				return &evalTree
+			}
+		}
+	}
+
+	// Check for parentheses
+	if tokens[0] == "(" && tokens[len(tokens)-1] == ")" {
+		// Remove the outer parentheses and parse the inner expression
+		return parser(tokens[1 : len(tokens)-1])
+	}
+
+	if (tokens[0] >= "0" && tokens[0] <= "9") && (tokens[len(tokens)-1] >= "0" && tokens[len(tokens)-1] <= "9") {
+		// If the expression is a single number, return it as a leaf node
+		evalTree.value = strings.Join(tokens, "")
+		return &evalTree
+	}
+
+	return nil
+}
+
+// TODO: Add error handling for invalid expressions
+func evaluate(evalTree Tree) int {
+	if (evalTree.value == "+" || evalTree.value == "-" || evalTree.value == "*" || evalTree.value == "/") && evalTree.left != nil && evalTree.right != nil {
+		_, leftErr := strconv.Atoi(evalTree.left.value)
+		_, rightErr := strconv.Atoi(evalTree.right.value)
+		if leftErr != nil {
+			evalTree.left.value = strconv.Itoa(evaluate(*evalTree.left))
+			leftErr = nil
+		}
+		if rightErr != nil {
+			evalTree.right.value = strconv.Itoa(evaluate(*evalTree.right))
+			rightErr = nil
+		}
+		if leftErr == nil && rightErr == nil {
+			leftVal, _ := strconv.Atoi(evalTree.left.value)
+			rightVal, _ := strconv.Atoi(evalTree.right.value)
+			switch evalTree.value {
+			case "+":
+				return leftVal + rightVal
+			case "-":
+				return leftVal - rightVal
+			case "*":
+				return leftVal * rightVal
+			case "/":
+				return leftVal / rightVal
+			}
+		}
+	}
+	return -1
+}
