@@ -11,6 +11,8 @@ func evaluator(evalTree Tree) (int, string) {
 	if (evalTree.value == "+" || evalTree.value == "-" || evalTree.value == "*" || evalTree.value == "/") && evalTree.left != nil && evalTree.right != nil {
 		_, leftErr := strconv.Atoi(evalTree.left.value)
 		_, rightErr := strconv.Atoi(evalTree.right.value)
+
+		// If either left or right child is not a number, evaluate them recursively
 		if leftErr != nil {
 			leftResult, _ := evaluator(*evalTree.left)
 			evalTree.left.value = strconv.Itoa(leftResult)
@@ -21,6 +23,8 @@ func evaluator(evalTree Tree) (int, string) {
 			evalTree.right.value = strconv.Itoa(rightResult)
 			rightErr = nil
 		}
+
+		// If both left and right children are numbers, perform the operation
 		if leftErr == nil && rightErr == nil {
 			leftVal, _ := strconv.Atoi(evalTree.left.value)
 			rightVal, _ := strconv.Atoi(evalTree.right.value)
