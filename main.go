@@ -23,28 +23,19 @@ func main() {
 func calculate(c *gin.Context) {
 	// Call lexer
 	tokens, error := lexer(c.Query("form"))
-	if error != "" {
-		c.JSON(400, gin.H{
-			"error": error,
-		})
+	if checkForErrors(error, c) {
 		return
 	}
 
 	// Call parser
 	evalTree, error := parser(tokens)
-	if error != "" {
-		c.JSON(400, gin.H{
-			"error": error,
-		})
+	if checkForErrors(error, c) {
 		return
 	}
 
 	// Call evaluator
 	result, error := evaluator(*evalTree)
-	if error != "" {
-		c.JSON(400, gin.H{
-			"error": error,
-		})
+	if checkForErrors(error, c) {
 		return
 	}
 
@@ -52,4 +43,15 @@ func calculate(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"result": result,
 	})
+}
+
+// Helper function to check for errors and set the JSON response if an error is found.
+func checkForErrors(error string, c *gin.Context) bool {
+	if error != "" {
+		c.JSON(400, gin.H{
+			"error": error,
+		})
+		return true
+	}
+	return false
 }
