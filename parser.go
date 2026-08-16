@@ -12,6 +12,16 @@ func parser(tokens []string) (*Tree, string) {
 	var parensCount int = 0
 	var error string = ""
 
+	// Check for leading and trailing operators
+	if tokens[0] == "+" || tokens[0] == "-" || tokens[0] == "*" || tokens[0] == "/" {
+		error = "Leading operator"
+		return nil, error
+	}
+	if tokens[len(tokens)-1] == "+" || tokens[len(tokens)-1] == "-" || tokens[len(tokens)-1] == "*" || tokens[len(tokens)-1] == "/" {
+		error = "Trailing operator"
+		return nil, error
+	}
+
 	// Add a missing * operator between a number and a parenthesis
 	for i := 0; i < len(tokens); i++ {
 		if tokens[i] == "(" && i > 0 {
