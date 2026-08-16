@@ -88,14 +88,15 @@ func parser(tokens []string) (*Tree, string) {
 		}
 	}
 
-	// Check for mismatched parentheses
+	// Check for mismatched amount of parentheses
 	if parensCount != 0 {
-		error = "Mismatched parentheses"
+		error = "Mismatched parentheses amount"
 		return nil, error
 	}
 
-	// Check for parentheses
+	// Process parentheses
 	if tokens[0] == "(" && tokens[len(tokens)-1] == ")" {
+		// Check for empty parentheses
 		if len(tokens) < 3 {
 			error = "Empty parentheses"
 			return nil, error
