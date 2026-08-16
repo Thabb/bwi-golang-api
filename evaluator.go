@@ -5,29 +5,29 @@ import (
 )
 
 // Evaluator function that takes the root of an evaluation tree and recursively computes the result of the mathematical expression represented by the tree.
-func evaluator(evalTree Tree) (int, string) {
+func evaluator(evalTree Tree) (float64, string) {
 	var error string = ""
 
 	if (evalTree.value == "+" || evalTree.value == "-" || evalTree.value == "*" || evalTree.value == "/") && evalTree.left != nil && evalTree.right != nil {
-		_, leftErr := strconv.Atoi(evalTree.left.value)
-		_, rightErr := strconv.Atoi(evalTree.right.value)
+		_, leftErr := strconv.ParseFloat(evalTree.left.value, 64)
+		_, rightErr := strconv.ParseFloat(evalTree.right.value, 64)
 
 		// If either left or right child is not a number, evaluate them recursively
 		if leftErr != nil {
 			leftResult, _ := evaluator(*evalTree.left)
-			evalTree.left.value = strconv.Itoa(leftResult)
+			evalTree.left.value = strconv.FormatFloat(leftResult, 'f', -1, 64)
 			leftErr = nil
 		}
 		if rightErr != nil {
 			rightResult, _ := evaluator(*evalTree.right)
-			evalTree.right.value = strconv.Itoa(rightResult)
+			evalTree.right.value = strconv.FormatFloat(rightResult, 'f', -1, 64)
 			rightErr = nil
 		}
 
 		// If both left and right children are numbers, perform the operation
 		if leftErr == nil && rightErr == nil {
-			leftVal, _ := strconv.Atoi(evalTree.left.value)
-			rightVal, _ := strconv.Atoi(evalTree.right.value)
+			leftVal, _ := strconv.ParseFloat(evalTree.left.value, 64)
+			rightVal, _ := strconv.ParseFloat(evalTree.right.value, 64)
 			switch evalTree.value {
 			case "+":
 				return leftVal + rightVal, error

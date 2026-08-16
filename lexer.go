@@ -17,7 +17,7 @@ func lexer(form string) ([]string, string) {
 
 	// Check if all tokens are valid
 	for i := 0; i < len(tokens); i++ {
-		if !((tokens[i] >= "0" && tokens[i] <= "9") || slices.Contains([]string{"+", "-", "*", "/", "(", ")"}, tokens[i])) {
+		if !((tokens[i] >= "0" && tokens[i] <= "9") || slices.Contains([]string{"+", "-", "*", "/", "(", ")", "."}, tokens[i])) {
 			error = "Invalid token: " + tokens[i]
 			break
 		}

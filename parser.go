@@ -105,8 +105,8 @@ func parser(tokens []string) (*Tree, string) {
 		return parser(tokens[1 : len(tokens)-1])
 	}
 
+	// If the expression is just a number, return it as a leaf node
 	if (tokens[0] >= "0" && tokens[0] <= "9") && (tokens[len(tokens)-1] >= "0" && tokens[len(tokens)-1] <= "9") {
-		// If the expression is a single number, return it as a leaf node
 		evalTree.value = strings.Join(tokens, "")
 		return &evalTree, error
 	}
