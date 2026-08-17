@@ -33,8 +33,6 @@ func calculate(c *gin.Context) {
 		return
 	}
 
-	printTree(evalTree, 0)
-
 	// Call evaluator
 	result, error := evaluator(*evalTree)
 	if checkForErrors(error, c) {
@@ -56,15 +54,4 @@ func checkForErrors(error string, c *gin.Context) bool {
 		return true
 	}
 	return false
-}
-
-func printTree(tree *Tree, level int) {
-	if tree != nil {
-		printTree(tree.right, level+1)
-		for i := 0; i < level; i++ {
-			print("    ")
-		}
-		println(tree.value)
-		printTree(tree.left, level+1)
-	}
 }
